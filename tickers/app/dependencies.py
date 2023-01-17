@@ -7,7 +7,7 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 
 def get_db() -> AgnosticClient:
-    return client["tickers_db"]["tickers"]
+    return client["tickers_db"]
 
 
 # Function to get access token from request header, that will be send by another service

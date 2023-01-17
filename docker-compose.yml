@@ -25,3 +25,31 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: tickers_db
+
+  accounts:
+    container_name: accounts
+    build: ./accounts
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./accounts:/app
+    depends_on:
+      - accounts-db
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: mysql+pymysql://root:password@accounts-db:3306/accounts_db
+      ACCESS_TOKEN: access_token
+      JWT_SECRET_KEY: secret_key
+      JWT_REFRESH_SECRET_KEY: refresh_secret_key
+
+  accounts-db:
+    container_name: accounts-db
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./accounts-db:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: accounts_db

@@ -61,17 +61,16 @@ class TickerInDB(TickerBase):
         }
 
 
-class TickerRequest(BaseModel):
+class TickerPermanentRequest(BaseModel):
     name: str
-    price: float
     volume: float
     datetime: datetime
+    type: str
 
     class Config:
         schema_extra = {
             "example": {
                 "name": "AAPL",
-                "price": 123.45,
                 "volume": 100000,
                 "datetime": "2021-01-01T00:00:00"
             }
