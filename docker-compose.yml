@@ -1,0 +1,27 @@
+services:
+  tickers:
+    container_name: tickers
+    build: ./tickers
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tickers:/app
+    depends_on:
+      - tickers-db
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8080
+    environment:
+      DATABASE_URL: mongodb://root:password@tickers-db:27017
+      ACCESS_TOKEN: access_token
+
+  tickers-db:
+    container_name: tickers-db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./tickers-db:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: tickers_db
