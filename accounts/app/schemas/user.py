@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, condecimal
 
 
 class UserBase(BaseModel):
@@ -14,6 +14,7 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     id: str
+    balance: condecimal(max_digits=10, decimal_places=4)
     is_active: bool
 
     class Config:

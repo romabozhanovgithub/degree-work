@@ -61,8 +61,9 @@ class TickerInDB(TickerBase):
         }
 
 
-class TickerPermanentRequest(BaseModel):
+class TickerRequest(BaseModel):
     name: str
+    price: float
     volume: float
     datetime: datetime
     type: str

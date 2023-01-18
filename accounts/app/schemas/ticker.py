@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -6,12 +7,18 @@ class TickerBase(BaseModel):
 
 
 class TickerCreate(TickerBase):
+    name: str
+    price: float
     volume: float
+    datetime: datetime
+    type: str
 
 
 class Ticker(TickerBase):
     id: str
-    ticker_name: str
+    name: str
+    price: float
+    volume: float
     user_id: int
 
     class Config:

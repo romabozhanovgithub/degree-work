@@ -10,7 +10,7 @@ class UserService:
         self.db = db
 
     def update_balance_by_orders(
-        self, orders: list[dict[str, Any]]
+        self, orders: list[dict[str, Any]], by_user: User = None
     ) -> None:
         """
         Update balance for user. Only for orders with type "SELL".
@@ -21,5 +21,6 @@ class UserService:
             price: Decimal = order["price"]
             volume: float = order["volume"]
 
-            user.balance += price * volume
+            if by_user is None or by_user != user:
+                user.balance += price * volume
             self.db.add(user)

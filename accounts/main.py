@@ -5,7 +5,15 @@ from app.routes import router
 from app.db import engine
 from app.models.base import Base
 
-Base.metadata.create_all(bind=engine)
+started = False
+
+while not started:
+    try:
+        Base.metadata.create_all(bind=engine)
+        started = True
+    except Exception as e:
+        print(e)
+
 
 app = FastAPI()
 

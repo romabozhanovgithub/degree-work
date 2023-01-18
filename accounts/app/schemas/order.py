@@ -1,12 +1,11 @@
-from decimal import Decimal
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, condecimal
 
 
 class OrderBase(BaseModel):
     ticker: str
-    price: Decimal
-    volume: float
+    price: condecimal(max_digits=10, decimal_places=4, ge=0)
+    volume: condecimal(max_digits=10, decimal_places=4, ge=0)
     type: str
 
 
@@ -24,30 +23,14 @@ class OrderResponse(OrderBase):
 
 
 class OrderLast(BaseModel):
-    price: Decimal
-    volume: float
+    price: condecimal(max_digits=10, decimal_places=4, ge=0)
+    volume: condecimal(max_digits=10, decimal_places=4, ge=0)
+
+    class Config:
+        orm_mode = True
 
 
 class OrdersLast(BaseModel):
-    """
-    ```python
-    >>> return {
-        "buy": [
-            {
-                "price": Decimal,
-                "volume": float,
-            },
-        ],
-        "sell": [
-            {
-                "price": Decimal,
-                "volume": float,
-            },
-        ],
-    }
-    ```
-    """
-
     buy: list[OrderLast]
     sell: list[OrderLast]
 

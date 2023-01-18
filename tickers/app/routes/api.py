@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from motor.core import AgnosticCollection
 
 from app.dependencies import get_db, get_access_token
-from app.schemas import TickerResponse, TickerPermanentRequest
+from app.schemas import TickerResponse, TickerRequest
 from app.routes.manager import manager
 
 router = APIRouter()
@@ -59,9 +59,9 @@ async def get_last_ticker(
     return ticker
 
 
-@router.post("/tickers/permanent", response_model=TickerResponse)
+@router.post("/tickers", response_model=TickerResponse)
 async def create_ticker(
-    ticker: TickerPermanentRequest,
+    ticker: TickerRequest,
     db: AgnosticCollection = Depends(get_db),
     access_token: str = Depends(get_access_token)
 ):
@@ -79,3 +79,24 @@ async def create_ticker(
     ticker = await db["tickers"].find_one({"_id": ticker.inserted_id})
     await manager.broadcast(ticker)
     return ticker
+
+
+@router.post("/tickers/bulk", response_model=list[TickerResponse])
+async def create_tickers_in_bulk(
+    tickers: list[TickerRequest],
+    db: AgnosticCollection = Depends(get_db),
+    access_token: str = Depends(get_access_token)
+):
+    """
+    Create tickers in bulk
+    """
+
+    print(f"Tickers: {tickers}")
+
+    tickers = await db["tickers"].insert_many([ticker.dict() for ticker in tickers])
+    tickers = await db["tickers"].find(
+        {"_id": {"$in": tickers.inserted_ids}}
+    ).to_list(None)
+    for ticker in tickers:
+        await manager.broadcast(ticker)
+    return tickers

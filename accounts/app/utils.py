@@ -1,13 +1,16 @@
 from datetime import datetime, timedelta
 import os
-from typing import Any, Union
+from typing import Any, List, Union
+import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import httpx
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from pydantic import parse_obj_as
 from sqlalchemy.orm import Session
 
+from app.schemas.ticker import TickerCreate
 from app.dependencies import get_db
 from app.schemas import TokenData
 from app.models import User
@@ -153,3 +156,23 @@ async def request(
             )
 
     return response
+
+
+async def create_new_tickers_in_bulk(
+    tickers: list[dict[str, Any]], access_token: str, user: User
+) -> None:
+    """
+    Create new tickers in bulk.
+    """
+
+    response = await request(
+        url="/tickers/bulk",
+        method="POST",
+        access_token=access_token,
+        data=tickers
+    )
+    # if response.status_code != 201:
+    #     raise HTTPException(
+    #         status_code=response.status_code,
+    #         detail=response.json()
+    #     )
