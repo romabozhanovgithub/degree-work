@@ -9,7 +9,7 @@ from app.routes.manager import manager
 router = APIRouter()
 
 
-@router.get("/tickers", response_model=list[str])
+@router.get("/", response_model=list[str])
 async def get_tickers(db: AgnosticCollection = Depends(get_db)):
     """
     Get all tickers names
@@ -19,7 +19,7 @@ async def get_tickers(db: AgnosticCollection = Depends(get_db)):
     return tickers
 
 
-@router.get("/tickers/{ticker_name}", response_model=list[TickerResponse])
+@router.get("/{ticker_name}", response_model=list[TickerResponse])
 async def get_ticker(ticker_name: str, db: AgnosticCollection = Depends(get_db)):
     """
     Get ticker by name
@@ -31,7 +31,7 @@ async def get_ticker(ticker_name: str, db: AgnosticCollection = Depends(get_db))
     return ticker
 
 
-@router.get("/tickers/{ticker_name}/{ticker_id}", response_model=TickerResponse)
+@router.get("/{ticker_name}/{ticker_id}", response_model=TickerResponse)
 async def get_ticker_by_id(
     ticker_name: str, ticker_id: str, db: AgnosticCollection = Depends(get_db)
 ):
@@ -45,7 +45,7 @@ async def get_ticker_by_id(
     return ticker
 
 
-@router.get("/tickers/{ticker_name}/last", response_model=TickerResponse)
+@router.get("/{ticker_name}/last", response_model=TickerResponse)
 async def get_last_ticker(
     ticker_name: str, db: AgnosticCollection = Depends(get_db)
 ):
@@ -59,7 +59,7 @@ async def get_last_ticker(
     return ticker
 
 
-@router.post("/tickers", response_model=TickerResponse)
+@router.post("/", response_model=TickerResponse)
 async def create_ticker(
     ticker: TickerRequest,
     db: AgnosticCollection = Depends(get_db),
@@ -81,7 +81,7 @@ async def create_ticker(
     return ticker
 
 
-@router.post("/tickers/bulk", response_model=list[TickerResponse])
+@router.post("/bulk", response_model=list[TickerResponse])
 async def create_tickers_in_bulk(
     tickers: list[TickerRequest],
     db: AgnosticCollection = Depends(get_db),
