@@ -1,13 +1,14 @@
 from datetime import datetime
 from bson import ObjectId
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi.responses import JSONResponse
 from pymongo import InsertOne, UpdateOne
 from motor.core import AgnosticCollection
 
 from app.dependencies import get_db, get_access_token
-from app.schemas import Order, OrderRequest, OrderResponse, OrdersLast, TickerRequest
-from app.services import OrderService, TickerService
-from app.utils import request, add_user_balance, send_ticker_by_websocket, send_tickers_by_websocket
+from app.schemas import OrderRequest, OrderResponse, OrdersLast
+from app.services import OrderService
+from app.utils import send_tickers_by_websocket
 
 router = APIRouter()
 
@@ -34,7 +35,6 @@ async def create_order(
     """
 
     order_service = OrderService(db)
-    ticker_service = TickerService(db)
     order = {
         **order.dict(),
         "price": float(order.price),
@@ -73,10 +73,12 @@ async def create_order(
             send_tickers_by_websocket, new_order["name"], new_tickers
         )
         
-    return users_to_update_balance
+    return JSONResponse(
+        status_code=201, content=users_to_update_balance
+    )
 
 
-@router.get("/{order_name}/last", response_model=OrdersLast)
+@router.get("/last/{order_name}", response_model=OrdersLast)
 async def get_last_orders(order_name: str, db: AgnosticCollection = Depends(get_db)):
     """
     Get last orders grouped by price and volume sum

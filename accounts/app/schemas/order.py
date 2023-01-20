@@ -20,35 +20,3 @@ class OrderResponse(OrderBase):
 
     class Config:
         orm_mode = True
-
-
-class OrderLast(BaseModel):
-    price: condecimal(max_digits=10, decimal_places=4, ge=0)
-    volume: condecimal(max_digits=10, decimal_places=4, ge=0)
-
-    class Config:
-        orm_mode = True
-
-
-class OrdersLast(BaseModel):
-    buy: list[OrderLast]
-    sell: list[OrderLast]
-
-    class Config:
-        orm_mode = True
-        schema_extra = {
-            "example": {
-                "buy": [
-                    {
-                        "price": 100.0,
-                        "volume": 10.0,
-                    },
-                ],
-                "sell": [
-                    {
-                        "price": 100.0,
-                        "volume": 10.0,
-                    },
-                ],
-            },
-        }

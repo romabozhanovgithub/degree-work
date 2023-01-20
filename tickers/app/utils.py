@@ -30,13 +30,25 @@ async def request(
 def add_user_balance(users_balance: dict, order: dict) -> None:
     """
     Add user balance to users_balance dict.
+
+    >>> users_balance: dict = {
+            user_id: {
+                "balance_name": value_to_update,
+                "balance_name": value_to_update,
+            },
+        }
     """
 
-    user_id = order["user"]
-    if users_balance.get(user_id):
-        users_balance[user_id] += order["price"] * order["volume"]
+    if order["user_id"] not in users_balance:
+        users_balance[order["user_id"]] = {
+            order["name"]: order["volume"] * order["price"],
+        }
     else:
-        users_balance[user_id] = order["price"] * order["volume"]
+        user_balance = users_balance[order["user_id"]]
+        if order["name"] not in user_balance:
+            user_balance[order["name"]] = order["volume"] * order["price"]
+        else:
+            user_balance[order["name"]] += order["volume"] * order["price"]
 
 
 async def send_ticker_by_websocket(ticker: dict) -> None:
