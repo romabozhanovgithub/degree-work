@@ -9,7 +9,10 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     while True:
         try:
-            data = await websocket.receive_text()
+            # accept message with json from websocket and if subscription type
+            # add subscription to manager
+            data = await websocket.receive_json()
+            await manager.accept_data(websocket, data)
         except WebSocketDisconnect:
             manager.disconnect(websocket)
             break

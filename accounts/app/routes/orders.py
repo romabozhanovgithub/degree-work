@@ -44,6 +44,7 @@ async def create_order(
         data.ticker, data.type
     ).filter(
         Order.user == user,
+        Order.price == data.price,
     ).first()
 
     if new_order:

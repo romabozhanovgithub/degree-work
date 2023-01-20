@@ -51,7 +51,6 @@ class TickerRequest(BaseModel):
     price: float
     volume: float
     datetime: datetime
-    type: str
 
     class Config:
         schema_extra = {

@@ -8,10 +8,8 @@ class OrderBase(BaseModel):
     name: str
     price: condecimal(max_digits=10, decimal_places=4, ge=0)
     volume: condecimal(max_digits=10, decimal_places=4, ge=0)
-    datetime: datetime
     type: str
     user: str
-    is_active: bool = True
 
     class Config:
         allow_population_by_field_name = True
@@ -43,7 +41,6 @@ class OrderRequest(OrderBase):
                 "name": "AAPL",
                 "price": 123.45,
                 "volume": 100000,
-                "datetime": "2021-01-01T00:00:00",
                 "type": "BUY",
                 "user": "c27a9f97-9a6d-4222-8b2c-9ab9e8879038"
             }
@@ -52,6 +49,7 @@ class OrderRequest(OrderBase):
 
 class OrderResponse(OrderBase):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    datetime: datetime
 
     class Config:
         allow_population_by_field_name = True

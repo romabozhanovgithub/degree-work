@@ -1,10 +1,13 @@
+from datetime import datetime
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
-from pymongo import UpdateOne
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pymongo import InsertOne, UpdateOne
 from motor.core import AgnosticCollection
 
 from app.dependencies import get_db, get_access_token
-from app.schemas import Order, OrderRequest, OrderResponse, OrdersLast
+from app.schemas import Order, OrderRequest, OrderResponse, OrdersLast, TickerRequest
+from app.services import OrderService, TickerService
+from app.utils import request, add_user_balance, send_ticker_by_websocket, send_tickers_by_websocket
 
 router = APIRouter()
 
@@ -19,8 +22,9 @@ async def get_orders(db: AgnosticCollection = Depends(get_db)):
     return orders
 
 
-@router.post("/", response_model=OrderResponse)
+@router.post("/", response_model=dict)
 async def create_order(
+    background_tasks: BackgroundTasks,
     order: OrderRequest,
     db: AgnosticCollection = Depends(get_db),
     access_token: str = Depends(get_access_token)
@@ -29,125 +33,47 @@ async def create_order(
     Create new order
     """
 
+    order_service = OrderService(db)
+    ticker_service = TickerService(db)
     order = {
         **order.dict(),
         "price": float(order.price),
         "volume": float(order.volume),
+        "datetime": datetime.utcnow().isoformat(),
     }
-    order = await db["orders"].insert_one(order)
-    order = await db["orders"].find_one({"_id": order.inserted_id})
-
-    # check existing orders
-    # if order is buy, check if there is sell order with same ticker and lower or equal price
-    # if order is sell, check if there is buy order with same ticker and higher or equal price
-    if order["type"] == "BUY":
-        pipeline = [
-            {
-                "$match": {
-                    "name": order["name"],
-                    "type": "SELL",
-                    "price": {
-                        "$lte": order["price"]
-                    },
-                    "is_active": True
-                }
-            },
-            {
-                "$sort": {
-                    "price": -1
-                }
-            },
-        ]
+    new_order = await order_service.get_order_by_user_type_name_price(
+        **order
+    )
+    if new_order:
+        new_order["volume"] += order["volume"]
+        created = False
     else:
-        pipeline = [
-            {
-                "$match": {
-                    "name": order["name"],
-                    "type": "BUY",
-                    "price": {
-                        "$gte": order["price"]
-                    },
-                    "is_active": True
-                }
-            },
-            {
-                "$sort": {
-                    "price": -1
-                }
-            },
-        ]
+        new_order = order
+        created = True
 
-    existing_orders = await db["orders"].aggregate(pipeline).to_list(None)
-    if existing_orders:
-        for existing_order in existing_orders:
-            # if order volume is bigger than existing order volume,
-            # update existing order volume to 0
-            # and decrease order volume by existing order volume,
-            # also set is_active to False for existing order
-            if order["volume"] > existing_order["volume"]:
-                await db["orders"].update_one(
-                    {"_id": existing_order["_id"]},
-                    {
-                        "$set": {
-                            "volume": 0,
-                            "is_active": False
-                        }
-                    }
-                )
-                order["volume"] -= existing_order["volume"]
-            # if order volume is smaller than existing order volume,
-            # update existing order volume by decreasing it by order volume
-            # and set is_active to False and order volume to 0 for order,
-            # also break the loop
-            elif order["volume"] < existing_order["volume"]:
-                # update in one query
-                await db["orders"].bulk_write([
-                    UpdateOne(
-                        {"_id": existing_order["_id"]},
-                        {
-                            "$set": {
-                                "volume": existing_order["volume"] - order["volume"]
-                            }
-                        }
-                    ),
-                    UpdateOne(
-                        {"_id": order["_id"]},
-                        {
-                            "$set": {
-                                "volume": 0,
-                                "is_active": False
-                            }
-                        }
-                    )
-                ])
-                break
-            # if order volume is equal to existing order volume,
-            # set is_active to False for both orders and volume to 0 for both orders
-            # and break the loop
-            else:
-                # update in one query
-                await db["orders"].bulk_write([
-                    UpdateOne(
-                        {"_id": existing_order["_id"]},
-                        {
-                            "$set": {
-                                "volume": 0,
-                                "is_active": False
-                            }
-                        }
-                    ),
-                    UpdateOne(
-                        {"_id": order["_id"]},
-                        {
-                            "$set": {
-                                "volume": 0,
-                                "is_active": False
-                            }
-                        }
-                    )
-                ])
-                break
-    return order
+    bulk_operations, users_to_update_balance, new_tickers = await order_service.update_orders_by_new_order(
+        new_order
+    )
+
+    if created:
+        bulk_operations.append(InsertOne(new_order))
+    else:
+        bulk_operations.append(
+            UpdateOne(
+                {"_id": ObjectId(new_order["_id"])},
+                {"$set": {"volume": new_order["volume"]}},
+            )
+        )
+    await db["orders"].bulk_write(bulk_operations)
+
+    # send ticker to websocket
+    if new_tickers:
+        await db["tickers"].insert_many(new_tickers)
+        background_tasks.add_task(
+            send_tickers_by_websocket, new_order["name"], new_tickers
+        )
+        
+    return users_to_update_balance
 
 
 @router.get("/{order_name}/last", response_model=OrdersLast)
@@ -155,69 +81,12 @@ async def get_last_orders(order_name: str, db: AgnosticCollection = Depends(get_
     """
     Get last orders grouped by price and volume sum
     """
-    pipeline = [
-        {
-            "$match": {
-                "name": order_name,
-                "is_active": True
-            }
-        },
-        {
-            "$group": {
-                "_id": {
-                    "type": "$type",
-                    "price": "$price"
-                },
-                "volume": {
-                    "$sum": "$volume"
-                }
-            }
-        },
-        {
-            "$sort": {
-                "_id.price": -1
-            }
-        },
-        {
-            "$group": {
-                "_id": "$_id.type",
-                "data": {
-                    "$push": {
-                        "price": "$_id.price",
-                        "volume": "$volume"
-                    }
-                }
-            }
-        },
-        {
-            "$project": {
-                "data": {
-                    "$slice": ["$data", 10]
-                },
-                "type": "$_id"
-            }
-        },
-        {
-            "$group": {
-                "_id": None,
-                "data": {
-                    "$push": {
-                        "type": "$type",
-                        "data": "$data"
-                    }
-                }
-            },
-        }
-    ]
-
-    orders: list = await db["orders"].aggregate(pipeline).to_list(None)
     
-    res = {
-        "BUY": [],
-        "SELL": []
-    }
+    order_service = OrderService(db)
+    orders = await order_service.get_last_orders(order_name)
+    res = {"BUY": [], "SELL": []}
     if orders:
-        for order in orders[0]["data"]:
+        for order in orders:
             if order["type"] == "BUY":
                 res["BUY"] = order["data"]
             else:

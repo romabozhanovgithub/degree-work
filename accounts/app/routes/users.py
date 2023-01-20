@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas import UserCreate, UserResponse, Token
 from app.models import User
-from app.dependencies import get_db
+from app.dependencies import get_access_token, get_db
 from app.utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, get_current_active_user, get_password_hash, verify_password
 
 
@@ -83,3 +83,26 @@ async def get_current_user(
     """
 
     return user
+
+
+@router.post(
+    "/balance",
+    summary="Add balance to user",
+    status_code=status.HTTP_200_OK,
+    response_model=str
+)
+async def add_balance(
+    users_balance: dict,
+    db: Session = Depends(get_db),
+    access_token: str = Depends(get_access_token),
+):
+
+    # users: list[User] = db.query(User).filter(
+    #     User.id in users_balance.keys()
+    # ).all()
+    # for user in users:
+    #     user.balance += users_balance[user.id]
+    #     db.add(user)
+    # db.commit()
+    print(f"User: {users_balance.keys()}")
+    return "Balance added successfully"
