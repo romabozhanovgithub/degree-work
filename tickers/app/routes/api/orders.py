@@ -8,7 +8,7 @@ from motor.core import AgnosticCollection
 from app.dependencies import get_db, get_access_token
 from app.schemas import OrderRequest, OrderResponse, OrdersLast
 from app.services import OrderService
-from app.utils import send_tickers_by_websocket
+from app.utils import send_tickers_and_orders_by_websocket
 
 router = APIRouter()
 
@@ -69,9 +69,12 @@ async def create_order(
     # send ticker to websocket
     if new_tickers:
         await db["tickers"].insert_many(new_tickers)
-        background_tasks.add_task(
-            send_tickers_by_websocket, new_order["name"], new_tickers
-        )
+    background_tasks.add_task(
+        send_tickers_and_orders_by_websocket,
+        new_order["name"],
+        new_tickers,
+        order_service
+    )
         
     return JSONResponse(
         status_code=201, content=users_to_update_balance
@@ -86,11 +89,4 @@ async def get_last_orders(order_name: str, db: AgnosticCollection = Depends(get_
     
     order_service = OrderService(db)
     orders = await order_service.get_last_orders(order_name)
-    res = {"BUY": [], "SELL": []}
-    if orders:
-        for order in orders:
-            if order["type"] == "BUY":
-                res["BUY"] = order["data"]
-            else:
-                res["SELL"] = order["data"]
-    return res
+    return orders

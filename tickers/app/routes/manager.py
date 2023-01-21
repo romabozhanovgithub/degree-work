@@ -17,6 +17,10 @@ class ConnectionManager:
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
+        # remove websocket from subscriptions
+        for subscription in self.subscriptions:
+            if websocket in self.subscriptions[subscription]:
+                self.subscriptions[subscription].remove(websocket)
 
     async def accept_data(self, websocket: WebSocket, data: dict):
         if data["type"] == "subscribe":

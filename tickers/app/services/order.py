@@ -186,7 +186,14 @@ class OrderService:
         orders: list = await self.db["orders"].aggregate(
             pipeline
         ).to_list(None)
-        return orders[0]["data"] if orders else [] 
+        res = {"BUY": [], "SELL": []}
+        if orders:
+            for order in orders[0]["data"]:
+                if order["type"] == "BUY":
+                    res["BUY"] = order["data"]
+                else:
+                    res["SELL"] = order["data"]
+        return res
 
     async def update_order_by_id(
         self, order_id: ObjectId, update: dict
@@ -233,23 +240,25 @@ class OrderService:
 
             # update user balance
             if existing_order["type"] == "SELL":
-                add_user_balance(
+                price = new_order["price"]
+            else:
+                price = existing_order["price"]
+            add_user_balance(
                     users_to_update_balance,
                     {
                         **existing_order,
-                        "volume": volume
+                        "volume": volume,
+                        "price": price
                     }
                 )
-                price = new_order["price"]
-            else:
-                add_user_balance(
-                    users_to_update_balance,
-                    {
-                        **new_order,
-                        "volume": volume
-                    }
-                )
-                price = existing_order["price"]
+            add_user_balance(
+                users_to_update_balance,
+                {
+                    **new_order,
+                    "volume": volume,
+                    "price": price
+                }
+            )
             
             if new_order["user"] != existing_order["user"]:
                 # add ticker

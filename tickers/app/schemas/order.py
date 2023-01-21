@@ -71,8 +71,8 @@ class OrderResponse(OrderBase):
 
 
 class OrderLast(BaseModel):
-    price: condecimal(max_digits=10, decimal_places=4, ge=0)
-    volume: condecimal(max_digits=10, decimal_places=4, ge=0)
+    price: str
+    volume: str
 
     class Config:
         orm_mode = True

@@ -1,5 +1,6 @@
 import httpx
 from app.routes.manager import manager
+from app.schemas import OrdersLast, TickerResponse
 
 ACCOUNTS_SERVICE_URL = "http://accounts:8000/api/v1"
 
@@ -39,16 +40,17 @@ def add_user_balance(users_balance: dict, order: dict) -> None:
         }
     """
 
-    if order["user_id"] not in users_balance:
-        users_balance[order["user_id"]] = {
-            order["name"]: order["volume"] * order["price"],
-        }
+    user = order["user"]
+    if order["type"] == "BUY":
+        balance_name = order["name"] # AAPL
+        if user not in users_balance:
+            users_balance[user] = {balance_name: 0}
+        users_balance[user][balance_name] += order["volume"]
     else:
-        user_balance = users_balance[order["user_id"]]
-        if order["name"] not in user_balance:
-            user_balance[order["name"]] = order["volume"] * order["price"]
-        else:
-            user_balance[order["name"]] += order["volume"] * order["price"]
+        balance_name = "USD"
+        if user not in users_balance:
+            users_balance[user] = {balance_name: 0}
+        users_balance[user][balance_name] += order["volume"] * order["price"]
 
 
 async def send_ticker_by_websocket(ticker: dict) -> None:
@@ -62,23 +64,24 @@ async def send_ticker_by_websocket(ticker: dict) -> None:
     )
 
 
-async def send_tickers_by_websocket(subscription: str, tickers: list) -> None:
+async def send_tickers_and_orders_by_websocket(
+    subscription: str, tickers: list, order_service
+) -> None:
     """
     Send tickers by websocket.
     """
 
+    last_orders = await order_service.get_last_orders(subscription)
     await manager.broadcast_subscription(
         subscription=subscription,
         data={
             "many": True,
-            "message": [
-                {
-                    "name": ticker["name"],
-                    "price": ticker["price"],
-                    "volume": ticker["volume"],
-                    "datetime": ticker["datetime"],
-                }
-                for ticker in tickers
-            ]
+            "message": {
+                "tickers": [
+                    TickerResponse(**ticker).json()
+                    for ticker in tickers
+                ],
+                "orders": OrdersLast(SELL=last_orders["SELL"], BUY=last_orders["BUY"]).dict()
+            }
         }
     )
