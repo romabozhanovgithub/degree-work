@@ -3,7 +3,7 @@ from pydantic import BaseModel, condecimal
 
 
 class OrderBase(BaseModel):
-    ticker: str
+    name: str
     price: condecimal(max_digits=10, decimal_places=4, ge=0)
     volume: condecimal(max_digits=10, decimal_places=4, ge=0)
     type: str

@@ -12,9 +12,17 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserBalance(BaseModel):
+    name: str
+    volume: condecimal(max_digits=10, decimal_places=4)
+
+    class Config:
+        orm_mode = True
+
+
 class UserResponse(UserBase):
     id: str
-    balance: condecimal(max_digits=10, decimal_places=4)
+    balance: list[UserBalance]
     is_active: bool
 
     class Config:

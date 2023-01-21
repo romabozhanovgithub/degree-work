@@ -17,6 +17,21 @@ class User(Base):
     # One-to-Many relationship
     balance = relationship("UserBalance", back_populates="user")
 
+    def __init__(self, email: str, first_name: str, last_name: str, hashed_password: str):
+        self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+        self.hashed_password = hashed_password
+        
+        for ticker in ["AAPL", "BTC", "USD"]:
+            self._init_balance(ticker)
+
+    def _init_balance(self, name: str, volume: float = 0.0):
+        self.balance.append(UserBalance(name=name, volume=volume))
+
+    def __str__(self):
+        return f"User(id={self.id}, email={self.email})"
+
 
 class UserBalance(Base):
     __tablename__ = "user_balance"

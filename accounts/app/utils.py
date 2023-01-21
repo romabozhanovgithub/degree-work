@@ -148,7 +148,7 @@ async def request(
                 f"{TICKERS_SERVICE_URL}{url}",
                 headers={"x-access-token": f"{access_token}"}
             )
-        elif method == "POST":
+        else:
             response = await client.post(
                 f"{TICKERS_SERVICE_URL}{url}",
                 json=data,

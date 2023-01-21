@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Any
 from sqlalchemy.orm import Session
 
-from app.models import User
+from app.models import User, UserBalance
 
 
 class UserService:
@@ -24,3 +24,14 @@ class UserService:
             if by_user is None or by_user != user:
                 user.balance += price * volume
             self.db.add(user)
+
+    def get_user_balance(self, user: User, balance_name: str) -> UserBalance:
+        """
+        Get user balance by name.
+        """
+
+        for balance in user.balance:
+            if balance.name == balance_name:
+                return balance
+
+        return None
