@@ -41,15 +41,14 @@ def add_user_balance(users_balance: dict, order: dict) -> None:
     """
 
     user = order["user"]
+    if user not in users_balance:
+        users_balance[user] = {balance_name: 0}
+        
     if order["type"] == "BUY":
-        balance_name = order["name"] # AAPL
-        if user not in users_balance:
-            users_balance[user] = {balance_name: 0}
+        balance_name = order["name"]
         users_balance[user][balance_name] += order["volume"]
     else:
         balance_name = "USD"
-        if user not in users_balance:
-            users_balance[user] = {balance_name: 0}
         users_balance[user][balance_name] += order["volume"] * order["price"]
 
 

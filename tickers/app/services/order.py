@@ -121,7 +121,7 @@ class OrderService:
 
     async def get_last_orders(
         self, order_name: str, limit: int = 10
-    ) -> list:
+    ) -> dict[str, list]:
         """
         Get last orders grouped by price and volume sum
         """
