@@ -83,26 +83,3 @@ async def get_current_user(
     """
 
     return user
-
-
-@router.post(
-    "/balance",
-    summary="Add balance to user",
-    status_code=status.HTTP_200_OK,
-    response_model=str
-)
-async def add_balance(
-    users_balance: dict,
-    db: Session = Depends(get_db),
-    access_token: str = Depends(get_access_token),
-):
-
-    # users: list[User] = db.query(User).filter(
-    #     User.id in users_balance.keys()
-    # ).all()
-    # for user in users:
-    #     user.balance += users_balance[user.id]
-    #     db.add(user)
-    # db.commit()
-    print(f"User: {users_balance.keys()}")
-    return "Balance added successfully"

@@ -41,6 +41,8 @@ services:
       ACCESS_TOKEN: access_token
       JWT_SECRET_KEY: secret_key
       JWT_REFRESH_SECRET_KEY: refresh_secret_key
+      STRIPE_SECRET_KEY: sk_test_51MSszoKWjgNN4QwtWdoLD3Yal8VL9SXvt8GKYS7QDlLfbOPZR07zvSt7onSDOqlqyqYR1a9bsnz2R4p2inpTLbN200LfsDxGwZ
+      STRIPE_PUBLISHABLE_KEY: pk_test_51MSszoKWjgNN4QwtX7YtYxwm7wdGNEsNkWn6tMJAwlfF5ohvg9k6ejOh0WMmMA7QL0N434RSLJigifJFIANUF2Ku00w7eFgwQm
 
   accounts-db:
     container_name: accounts-db
