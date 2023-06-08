@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: tickers-db
+    image: mongo:latest
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: tickers
+    volumes:
+      - ./data/db:/data/db
+      - ./data/configdb:/data/configdb
+    networks:
+      - tradehere-network
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - tradehere-network
+
+  app:
+    container_name: tickers-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-dev}
+    ports:
+      - 8000:8000
+    environment:
+      env_file: ./system_configs/.env
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - tradehere-network
+
+networks:
+  tradehere-network:
+    external: true

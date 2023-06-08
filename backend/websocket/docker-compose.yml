@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: websocket-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-dev}
+    ports:
+      - "8080:8080"
+    environment:
+      env_file: ./system_configs/.env
+    volumes:
+      - ./:/app
+    networks:
+      - tradehere-network
+
+networks:
+  tradehere-network:
+    external: true
