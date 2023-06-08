@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: accounts-db
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: accounts
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - tradehere-network
+
+  app:
+    container_name: accounts-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-dev}
+    ports:
+      - 5000:5000
+    environment:
+      env_file: ./system_configs/.env
+    volumes:
+      - ./:/app
+    depends_on:
+      - db
+    networks:
+      - tradehere-network
+
+  # celery:
+  #   container_name: tickers-celery
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.worker
+  #   environment:
+  #     env_file: ./system_configs/.env
+  #   volumes:
+  #     - ./:/app
+  #   depends_on:
+  #     - db
+
+  stripe-cli:
+    image: stripe/stripe-cli
+    container_name: stripe-cli
+    command: listen --api-key sk_test_51MSszoKWjgNN4QwtWdoLD3Yal8VL9SXvt8GKYS7QDlLfbOPZR07zvSt7onSDOqlqyqYR1a9bsnz2R4p2inpTLbN200LfsDxGwZ --forward-to accounts-app:5000/payment/webhook --skip-verify
+    env_file: ./system_configs/.env
+    networks:
+      - tradehere-network
+
+networks:
+  tradehere-network:
+    external: true

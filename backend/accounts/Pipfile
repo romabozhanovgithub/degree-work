@@ -1,0 +1,40 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+black = "*"
+flake8 = "*"
+bandit = "*"
+python-dotenv = "*"
+mypy = "*"
+sqlalchemy = {extras = ["asyncio"], version = "*"}
+asyncpg = "*"
+typer = "*"
+python-multipart = "*"
+pytest-asyncio = "*"
+pytest-env = "*"
+pydantic = {extras = ["email"], version = "*"}
+python-jose = {extras = ["cryptography"], version = "*"}
+passlib = {extras = ["bcrypt"], version = "*"}
+authlib = "*"
+itsdangerous = "*"
+httpx = "*"
+fastapi-mail = "*"
+aiosqlite = "*"
+anyio = "*"
+trio = "*"
+cffi = "*"
+stripe = "*"
+google-auth = "*"
+celery = "*"
+flower = "*"
+aio-pika = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
