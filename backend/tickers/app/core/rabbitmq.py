@@ -30,6 +30,9 @@ class PikaClient:
             self.websocket_queue_name, durable=True
         )
 
+    async def close_connection(self) -> None:
+        await self.connection.close()
+
     def create_queue_name(self, symbol: str) -> str:
         return f"{self.websocket_queue_name}_{symbol}"
 
