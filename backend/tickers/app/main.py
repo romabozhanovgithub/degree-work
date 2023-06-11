@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core import settings
 from app.db.utils import connect_to_mongo, close_mongo_connection
-from app.routers import order_router
+from app.routers import order_router, trade_router
 from app.core.rabbitmq import pika_client
 
 app = FastAPI(title=settings.APP_TITLE)
@@ -19,6 +19,7 @@ app.add_middleware(
 
 # ROUTERS
 app.include_router(order_router)
+app.include_router(trade_router)
 
 
 # EVENTS
@@ -38,5 +39,5 @@ async def shutdown_event():
     await close_mongo_connection()
     print("Disconnected from MongoDB")
     print("Closing RabbitMQ connection...")
-    await pika_client.connection.close()
+    await pika_client.close_connection()
     print("RabbitMQ connection closed")
