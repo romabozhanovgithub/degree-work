@@ -10,6 +10,7 @@ from app.db.client import get_client
 class BaseRepository:
     collection_name: str
     order_by: str = "created_at"
+    order: int = -1
 
     def __init__(
         self,
@@ -39,7 +40,7 @@ class BaseRepository:
         """
 
         result = self.collection.find(filter, limit=limit).sort(
-            order_by or self.order_by, -1
+            order_by or self.order_by, self.order
         )
         return await result.to_list(length=limit)
 
@@ -66,6 +67,7 @@ class BaseRepository:
         field: str,
         value: str,
         limit: int = 100,
+        order: int = -1,
         order_by: str | None = None,
     ) -> list[dict]:
         """
@@ -74,12 +76,12 @@ class BaseRepository:
         """
 
         result = self.collection.find({field: value}, limit=limit).sort(
-            order_by or self.order_by, -1
+            order_by or self.order_by, order or self.order
         )
         return await result.to_list(length=limit)
 
     async def get_documents_by_fields(
-        self, limit: int = 100, order_by: str | None = None, **fields: dict
+        self, limit: int = 100, order_by: str | None = None, order: int = -1, **fields: dict
     ) -> list[dict]:
         """
         Find documents by fields and return them.
@@ -87,7 +89,7 @@ class BaseRepository:
         """
 
         result = self.collection.find(fields).sort(
-            order_by or self.order_by, -1
+            order_by or self.order_by, order or self.order
         )
         return await result.to_list(length=limit)
 
@@ -100,7 +102,7 @@ class BaseRepository:
         """
 
         result = self.collection.find({}, limit=limit).sort(
-            order_by or self.order_by, -1
+            order_by or self.order_by, self.order
         )
         return await result.to_list(length=limit)
 

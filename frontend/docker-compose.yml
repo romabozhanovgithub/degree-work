@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: frontend-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ${TARGET:-dev}
+    ports:
+      - "3000:3000"
+    environment:
+      env_file: ./system_configs/.env
+    volumes:
+      - ./:/app
+    networks:
+      - tradehere-network
+
+networks:
+  tradehere-network:
+    external: true

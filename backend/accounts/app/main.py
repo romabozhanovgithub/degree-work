@@ -1,24 +1,21 @@
 import asyncio
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from typer import Typer
 
 from app.core import settings
-from app.core.dependencies import get_balance_repository
+from app.core.dependencies import get_session
 from app.core.utils import oauth
 from app.db import init_models  # noqa: F401
 from app.repositories import BalanceRepository
-from app.routers import auth_router, user_router, payment_router, repr_router
+from app.routers import auth_router, user_router, payment_router
 from app.core.rabbitmq import pika_client
 from app.core.rabbitmq.utils import consume_income_message
 
 app = FastAPI(title=settings.APP_TITLE)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
-cli = Typer()
 
 # GOOGLE
 oauth.register(
@@ -41,19 +38,14 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(payment_router)
-app.include_router(repr_router)
-
-# # CLI
-# @cli.command(name="init-models")
-# def db_init_models():
-#     asyncio.run(init_models())
-#     print("Done")
 
 
 @app.on_event("startup")
-async def startup_event(
-    balance_repository: BalanceRepository = Depends(get_balance_repository),
-):
+async def startup_event():
+    await init_models()
+    async for session in get_session():
+        balance_repository = BalanceRepository(session)
+        break
     print("Starting up...")
     print("Connecting to RabbitMQ...")
     await pika_client.connect()

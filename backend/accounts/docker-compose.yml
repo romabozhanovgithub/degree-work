@@ -33,18 +33,6 @@ services:
     networks:
       - tradehere-network
 
-  # celery:
-  #   container_name: tickers-celery
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.worker
-  #   environment:
-  #     env_file: ./system_configs/.env
-  #   volumes:
-  #     - ./:/app
-  #   depends_on:
-  #     - db
-
   stripe-cli:
     image: stripe/stripe-cli
     container_name: stripe-cli

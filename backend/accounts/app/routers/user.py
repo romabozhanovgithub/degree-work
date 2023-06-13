@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.core.dependencies import get_auth_service, get_balance_repository
+from app.core.rabbitmq import pika_client
 from app.core.utils import oauth2_scheme
 from app.repositories import BalanceRepository
 from app.schemas import (
     UserResponseSchema,
     UserWithBalaceResponseSchema,
     BalanceUpdateSchema,
+    BalanceResponseSchema,
 )
 from app.services import AuthService
 
@@ -36,6 +38,7 @@ async def get_current_user(
     status_code=status.HTTP_200_OK,
 )
 async def new_order(
+    background_tasks: BackgroundTasks,
     balance: BalanceUpdateSchema,
     token: str = Depends(oauth2_scheme),
     balance_repository: BalanceRepository = Depends(get_balance_repository),
@@ -49,4 +52,17 @@ async def new_order(
         )
     user.balances[0].amount -= balance.amount
     await balance_repository.update_balance(user.balances[0])
+    background_tasks.add_task(
+        pika_client.send_message_to_websocket_queue,
+        {
+            "type": "update",
+            "target": "balance",
+            "data": BalanceResponseSchema(
+                user_id=user.id,
+                currency=user.balances[0].currency,
+                amount=user.balances[0].amount,
+            ).dict(),
+        },
+        user.id,
+    )
     return UserResponseSchema.from_orm(user)

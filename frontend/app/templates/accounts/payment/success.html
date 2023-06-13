@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <div></div>
+    <a href="{{ url_for('index') }}">Tradehere</a>
+    <div></div>
+{% endblock %}
+
+{% block content %}
+    <div class="message-container">
+        <h1 class="message-title">Deposit Successful!</h1>
+        <p class="message-text">Your deposit has been successfully processed.</p>
+        <a class="message-button" href="{{ url_for('index') }}">Return to Home</a>
+    </div>
+{% endblock %}

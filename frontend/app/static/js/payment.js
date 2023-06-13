@@ -2,11 +2,8 @@ document.getElementById('form-amount').addEventListener('submit', async function
     event.preventDefault();
     // Load the publishable key from the server. The publishable key
     // is set in your .env file.
-    const {publishableKey} = await fetch('/payment/publishable-key').then((r) => r.json());
+    const {publishableKey} = await fetch('http://localhost:5000/payment/publishable-key').then((r) => r.json());
     if (!publishableKey) {
-      addMessage(
-        'No publishable key returned from the server. Please check `.env` and try again'
-      );
       alert('Please set your Stripe publishable API key in the .env file');
     }
   
@@ -18,12 +15,13 @@ document.getElementById('form-amount').addEventListener('submit', async function
     // initialize the instance of Elements below. The PaymentIntent settings configure which payment
     // method types to display in the PaymentElement.
     amount = document.getElementById('amount').value;
-    token = localStorage.getItem('token');
+    currency = document.getElementById('currency').value;
+    token = localStorage.getItem('accessToken');
     const {
       error: backendError,
       clientSecret
     } = await fetch(
-        '/payment/deposit',
+        'http://localhost:5000/payment/deposit',
         {
             method: 'POST',
             headers: {
@@ -31,15 +29,18 @@ document.getElementById('form-amount').addEventListener('submit', async function
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-              amount: amount
+              amount: amount,
+              currency: currency
             })
         }
     ).then(r => r.json());
-    if (backendError) {
-      addMessage(backendError.message);
-    }
-    addMessage(`Client secret returned.`);
-  
+
+    let amountForm = document.getElementById('form-amount');
+    amountForm.style.display = "none";
+
+    let paymentForm = document.getElementById('payment-form');
+    paymentForm.style.display = "block";
+
     // Initialize Stripe Elements with the PaymentIntent's clientSecret,
     // then mount the payment element.
     const elements = stripe.elements({ clientSecret });
@@ -82,13 +83,11 @@ document.getElementById('form-amount').addEventListener('submit', async function
       const {error: stripeError} = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/return.html`,
+          return_url: `${window.location.origin}/payment/success`,
         }
       });
   
       if (stripeError) {
-        addMessage(stripeError.message);
-  
         // reenable the form.
         submitted = false;
         form.querySelector('button').disabled = false;

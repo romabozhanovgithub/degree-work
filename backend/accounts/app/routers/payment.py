@@ -41,7 +41,7 @@ async def deposit(
     user: User = Depends(get_request_user),
 ):
     payment_intent = payment_service.create_payment_intent(
-        customer_id=user.id, amount=data.amount
+        customer_id=user.id, amount=data.amount, currency=data.currency
     )
     return DepositResponseSchema(
         client_secret=payment_intent.client_secret,

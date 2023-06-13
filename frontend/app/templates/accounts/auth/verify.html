@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <div></div>
+    <a href="{{ url_for('index') }}">Tradehere</a>
+    <div></div>
+{% endblock %}
+
+{% block content %}
+    <div class="email-verification-page">
+        <h1>Email Verification</h1>
+        <p id="message">Verifying your email...</p>
+        <a href="{{ url_for('index') }}" class="button-link">Return to Home Page</a>
+    </div>
+    <script src="{{ url_for('static', path='js/verifyEmail.js') }}"></script>
+{% endblock %}

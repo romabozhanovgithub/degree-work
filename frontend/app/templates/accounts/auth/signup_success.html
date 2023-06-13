@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <div></div>
+    <a href="{{ url_for('index') }}">Tradehere</a>
+    <div></div>
+{% endblock %}
+
+{% block content %}
+    <div class="email-confirmation-page">
+        <h1>Email Confirmation</h1>
+        <p>We've sent a confirmation link to your email. Please check your inbox and follow the instructions to confirm your email address.</p>
+        <a href="{{ url_for('index') }}" class="button-link">Return to Home Page</a>
+    </div>
+{% endblock %}

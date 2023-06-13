@@ -10,6 +10,7 @@ class MockPaymentIntent:
     def __init__(self, customer: str, amount: int):
         self.customer = customer
         self.amount = amount
+        self.currency = "usd"
 
 
 async def _create_test_user(auth_service: AuthService):
@@ -50,7 +51,7 @@ async def test_create_payment_intent(
     payment_service: PaymentService,
 ):
     user = await _create_test_user(auth_service)
-    payment_service.create_payment_intent(100, user.id)
+    payment_service.create_payment_intent(100, user.id, "usd")
     mock_create.assert_called_once_with(
         amount=100,
         currency="usd",

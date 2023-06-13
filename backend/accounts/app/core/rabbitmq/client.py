@@ -65,7 +65,7 @@ class PikaClient:
         async with self.accounts_queue.iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
-                    await callable(message, **kwargs)
+                    await callback(message, **kwargs)
 
 
 pika_client = PikaClient()

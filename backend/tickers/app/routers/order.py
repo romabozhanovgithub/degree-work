@@ -42,24 +42,6 @@ async def create_order(
 
 
 @router.get(
-    "/{order_id}",
-    summary="Get an order by id",
-    description="Get an order by id and return the order.",
-    response_model=OrderResponseSchema,
-    status_code=status.HTTP_200_OK,
-)
-async def get_order_by_id(
-    order_id: str,
-    order_service: OrderService = Depends(get_order_service),
-) -> OrderResponseSchema:
-    """
-    Get an order by id and return the order.
-    """
-
-    return await order_service.get_order(order_id)
-
-
-@router.get(
     "/last/{symbol}",
     summary="Get last orders by symbol",
     description="Get last orders by symbol and return the orders.",
@@ -105,3 +87,21 @@ async def get_orders_by_user_id(
         authorization=authorization, http_bearer=http_bearer
     )
     return await order_service.get_user_orders(user_id, limit=limit)
+
+
+@router.get(
+    "/{order_id}",
+    summary="Get an order by id",
+    description="Get an order by id and return the order.",
+    response_model=OrderResponseSchema,
+    status_code=status.HTTP_200_OK,
+)
+async def get_order_by_id(
+    order_id: str,
+    order_service: OrderService = Depends(get_order_service),
+) -> OrderResponseSchema:
+    """
+    Get an order by id and return the order.
+    """
+
+    return await order_service.get_order(order_id)

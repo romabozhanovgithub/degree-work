@@ -85,6 +85,7 @@ class AuthService:
             )
             return decoded_token
         except JWTError:
+            print("Invalid token")
             raise InvalidTokenException()
 
     async def get_current_user(

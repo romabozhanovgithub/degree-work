@@ -84,6 +84,8 @@ class OrderRepository(BaseRepository):
         side: Literal["buy", "sell"],
         symbol: str,
         limit: int = 100,
+        order_by: str = "price",
+        order: int = -1,
         json: bool = False,
     ) -> list[OrderDB]:
         """
@@ -92,7 +94,7 @@ class OrderRepository(BaseRepository):
         """
 
         result = await self.get_documents_by_fields(
-            limit, status=status, side=side, symbol=symbol
+            limit, status=status, side=side, symbol=symbol, order_by=order_by, order=order
         )
         if json:
             return [OrderDB(**order).to_json() for order in result]

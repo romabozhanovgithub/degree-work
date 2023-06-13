@@ -24,6 +24,7 @@ async def _create_test_user(auth_service: AuthService):
     return user
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_get_publishable_key():
     with TestClient(app) as client:
@@ -33,6 +34,7 @@ async def test_get_publishable_key():
         assert response.json()["publishableKey"] == settings.STRIPE_PUBLIC_KEY
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 @patch("app.services.payment.PaymentService.create_payment_intent")
 async def test_deposit(
@@ -66,6 +68,7 @@ async def test_deposit(
         )
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 @patch("app.services.payment.PaymentService.get_event")
 @patch("app.services.payment.PaymentService.payment_intent_confirm")

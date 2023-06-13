@@ -21,11 +21,11 @@ class PaymentService:
         return customer
 
     def create_payment_intent(
-        self, amount: int, customer_id: str
+        self, amount: int, customer_id: str, currency: str
     ) -> dict:  # PaymentIntentScheme
         payment_intent = self.stripe.PaymentIntent.create(
             amount=amount,
-            currency=self.currency,
+            currency=currency,
             customer=customer_id,
             payment_method_types=self.payment_method_types,
             description="Payment for user",
@@ -36,7 +36,7 @@ class PaymentService:
         self, payment_intent: dict
     ):  # PaymentIntentScheme
         balance = await self.balance_repository.get_user_balance_by_currency(
-            payment_intent.customer, self.currency
+            payment_intent.customer, payment_intent.currency
         )
         balance.amount += payment_intent.amount
         await self.balance_repository.update_balance(balance)

@@ -8,7 +8,6 @@ from app.services import TradeService
 router = APIRouter(prefix="/trades", tags=["trades"])
 
 
-
 @router.get(
     "/last/{symbol}",
     summary="Get last trades by symbol",

@@ -75,6 +75,7 @@ class OrderService(BaseService):
                 side="buy",
                 symbol=symbol,
                 limit=limit,
+                order=-1,
                 json=json,
             )
         )
@@ -93,6 +94,7 @@ class OrderService(BaseService):
                 side="sell",
                 symbol=symbol,
                 limit=limit,
+                order=-1,
                 json=json,
             )
         )
@@ -130,7 +132,7 @@ class OrderService(BaseService):
         order_to_db = order.to_dict()
         side = "sell" if order.side == "buy" else "buy"
         price = (
-            {"$gte" if order.side == "buy" else "$lte": order_to_db["price"]}
+            {"$gte" if order.side == "sell" else "$lte": order_to_db["price"]}
             if order.type == "limit"
             else None
         )

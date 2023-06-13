@@ -13,6 +13,7 @@ class PublishableKeyResponseSchema(BaseModel):
 
 class DepositRequestSchema(BaseModel):
     amount: int
+    currency: str = "usd"
 
 
 class DepositResponseSchema(BaseModel):

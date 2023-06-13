@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block header %}
+    <div></div>
+    <a href="{{ url_for('index') }}">Tradehere</a>
+    <div></div>
+{% endblock %}
+
+{% block content %}
+    <div id="payment">
+        <form id="form-amount" class="deposit-form">
+            <label for="amount" class="form-label">Amount:</label>
+            <input type="number" id="amount" name="amount" class="form-input">
+            <label for="currency" class="form-label">Currency:</label>
+            <select id="currency" name="currency" class="form-input">
+                <option value="usd">USD</option>
+                <option value="eur">EUR</option>
+                <option value="gbp">GBP</option>
+                <option value="jpy">JPY</option>
+                <!-- Add more currencies as needed -->
+            </select>
+            <button id="amount-submit">Deposite</button>
+        </form>
+
+        <form id="payment-form" class="deposit-form">
+            <div id="link-authentication-element">
+                <!-- Elements will create authentication element here -->
+            </div>
+            <div id="card-element">
+                <!-- Elements will create input elements here -->
+            </div>
+            <div id="card-errors" role="alert"></div>
+            <div id="iban-element">
+                <!-- Elements will create input elements here -->
+            </div>
+            <div id="payment-element">
+                <!-- Elements will create form elements here -->
+            </div>
+            <div id="error-message">
+                <!-- Display error message to your customers here -->
+            </div>
+            <button id="submit" class="form-button">Pay now</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', path='/js/payment.js') }}" defer></script>
+{% endblock %}

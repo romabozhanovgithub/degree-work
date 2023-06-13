@@ -18,5 +18,6 @@ async def consume_income_message(message: IncomingMessage, **kwargs) -> None:
             "type": "update",
             "target": "balance",
             "data": BalanceResponseSchema.from_orm(new_balance).dict(),
-        }
+        },
+        order.user_id,
     )

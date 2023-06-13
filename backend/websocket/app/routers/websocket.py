@@ -1,62 +1,12 @@
 import asyncio
+import json
 from aio_pika import Queue
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
 
 from app.core.utils import get_current_user
 from app.core.rabbitmq import pika_client
 
 router = APIRouter(prefix="", tags=["websocket"])
-
-
-@router.get("/status")
-async def status():
-    return {"status": "ok"}
-
-
-@router.get("/repr")
-async def repr():
-    html = """
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <title>Chat</title>
-            </head>
-            <body>
-                <h1>WebSocket Chat</h1>
-                <h2>Your ID: <span id="ws-id"></span></h2>
-                <form action="" onsubmit="sendMessage(event)">
-                    <input type="text" id="messageText" autocomplete="off"/>
-                    <button>Send</button>
-                </form>
-                <ul id='messages'>
-                </ul>
-                <script>
-                    var symbol = Date.now()
-                    document.querySelector("#ws-id").textContent = symbol;
-                    var ws = new WebSocket(`ws://localhost:8080/ws`);
-                    ws.onmessage = function(event) {
-                        var messages = document.getElementById('messages')
-                        var message = document.createElement('li')
-                        var content = document.createTextNode(event.data)
-                        message.appendChild(content)
-                        messages.appendChild(message)
-                    };
-                    function sendMessage(event) {
-                        var input = document.getElementById("messageText")
-                        var data = JSON.stringify({
-                            type: "subscribe",
-                            target: input.value
-                        })
-                        ws.send(data)
-                        input.value = ''
-                        event.preventDefault()
-                    }
-                </script>
-            </body>
-        </html>
-    """
-    return HTMLResponse(html)
 
 
 @router.websocket("/ws")
@@ -101,7 +51,7 @@ async def websocket_endpoint(
         async with context["queue"].iterator() as queue_iter:
             async for message in queue_iter:
                 async with message.process():
-                    data = message.body.decode()
+                    data = json.loads(message.body)
                     await websocket.send_json(data)
 
     try:

@@ -30,7 +30,9 @@ class TradeRepository(BaseRepository):
         Optionally accepts a limit, defaults to 100.
         """
 
-        result = await self.get_documents_by_field("symbol", symbol, limit)
+        result = await self.get_documents_by_field(
+            "symbol", symbol, limit, order_by="createdAt", order=1
+        )
         return [TradeDB(**trade) for trade in result]
 
     async def get_trades_by_order_id(

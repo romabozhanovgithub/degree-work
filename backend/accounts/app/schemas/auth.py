@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import Form
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
+from pydantic.utils import to_lower_camel
 
 
 class LoginSchema(BaseModel):
@@ -12,6 +13,10 @@ class LoginSchema(BaseModel):
 class SignUpSchema(LoginSchema):
     first_name: str
     last_name: str
+
+    class Config:
+        allow_population_by_field_name = True
+        alias_generator = to_lower_camel
 
 
 class AccessTokenSchema(BaseModel):
